@@ -1,0 +1,42 @@
+# Data files (too large for git, and shouldn't be versioned anyway)
+data/
+*.csv
+*.parquet
+*.json
+
+# Keep folder structure but ignore contents
+!data/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Airflow
+airflow.db
+airflow.cfg
+logs/
+.airflowignore
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# Docker
+.env
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# AWS credentials (never commit these)
+.aws/
+*.pem
