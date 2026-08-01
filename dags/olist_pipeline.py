@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from airflow import DAG
+from airflow.sdk import DAG
 from airflow.providers.standard.operators.bash import BashOperator
 
 # Default arguments setting retries and ownership
@@ -32,7 +32,7 @@ with DAG(
     verify_counts_task = BashOperator(
         task_id='verify_counts_task',
         bash_command=(
-            'PGPASSWORD=olist_password psql -h olist-postgres -U olist_user -d olist_db -c '
+            'PGPASSWORD=olist_password psql -h olist-postgres -p 5432 -U olist_user -d olist_db -c '
             '"SELECT \'orders\' as table_name, COUNT(*) FROM orders UNION ALL '
             'SELECT \'order_items\', COUNT(*) FROM order_items;"'
         )
