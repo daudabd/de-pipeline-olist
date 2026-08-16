@@ -39,4 +39,6 @@ dbt/logs/
 
 # AWS credentials (never commit these)
 .aws/
-*.pem
+*.pemaws/
+awscliv2.zip
+olist_dbt/.user.yml

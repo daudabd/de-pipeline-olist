@@ -1,0 +1,74 @@
+version: 2
+
+models:
+  - name: fct_orders_by_status
+    description: >
+      One row per order status, with order counts, share of total orders,
+      and average purchase-to-delivery time. Built from stg_orders only.
+    columns:
+      - name: order_status
+        description: "Order status as recorded in the source system (e.g. delivered, shipped, canceled)."
+      - name: order_count
+        description: "Number of orders with this status."
+      - name: pct_of_orders
+        description: "order_count as a percentage of all orders across every status, rounded to 2 decimals."
+      - name: avg_days_purchase_to_delivery
+        description: >
+          Average number of days between order_purchase_timestamp and
+          order_delivered_customer_date for orders in this status, rounded
+          to 2 decimals. Null for statuses where no order in the group has
+          a delivery date yet (e.g. canceled, processing).
+
+  - name: fct_revenue_by_seller
+    description: >
+      One row per seller, with total revenue, order count, and average
+      order value, ranked by revenue descending. Built from
+      stg_order_items only. Revenue is item price only (freight_value is
+      excluded, since freight is a shipping cost pass-through rather than
+      seller revenue).
+    columns:
+      - name: seller_id
+        description: "Unique identifier of the seller."
+      - name: total_revenue
+        description: "Sum of item price across all order line items sold by this seller."
+      - name: order_count
+        description: "Number of distinct orders that include at least one item from this seller."
+      - name: avg_order_value
+        description: "total_revenue divided by order_count, rounded to 2 decimals."
+      - name: revenue_rank
+        description: "Seller's rank by total_revenue, descending (1 = highest revenue)."
+
+  - name: fct_delivery_performance
+    description: >
+      One row per purchase month, comparing actual vs. estimated delivery
+      time and the rate of late deliveries. Built from stg_orders only.
+      Every month with at least one purchased order is included, even if
+      none of its orders have been delivered yet (e.g. the most recent
+      months in the dataset) — in those months the delivery-based columns
+      are null. Delivery time and lateness can only be computed for orders
+      that actually have a delivery date, so those metrics are calculated
+      over the delivered_order_count subset, not order_count.
+    columns:
+      - name: purchase_month
+        description: "First day of the calendar month in which the order was purchased (order_purchase_timestamp truncated to month)."
+      - name: order_count
+        description: >
+          Total orders purchased in this month, regardless of delivery
+          status. This is the true denominator to check before trusting
+          late_delivery_rate_pct — some months (e.g. Sept 2016) have only
+          a handful of orders, making the rate noisy.
+      - name: delivered_order_count
+        description: >
+          Number of orders purchased in this month that have since been
+          delivered. This is the denominator behind avg_actual_delivery_days,
+          avg_estimated_delivery_days, and late_delivery_rate_pct. Null when
+          no orders from this month have been delivered yet.
+      - name: avg_actual_delivery_days
+        description: "Average days between order_purchase_timestamp and order_delivered_customer_date, rounded to 2 decimals. Null when delivered_order_count is null."
+      - name: avg_estimated_delivery_days
+        description: "Average days between order_purchase_timestamp and order_estimated_delivery_date, rounded to 2 decimals. Null when delivered_order_count is null."
+      - name: late_delivery_rate_pct
+        description: >
+          Percentage of delivered orders in this month where
+          order_delivered_customer_date was after order_estimated_delivery_date,
+          rounded to 2 decimals. Null when delivered_order_count is null.

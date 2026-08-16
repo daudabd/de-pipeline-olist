@@ -1,16 +1,12 @@
 import os
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 
-# Initialize Spark using the internal container path for the JDBC jar
-spark = (SparkSession.builder
-        .appName("OrderItems")
-        .config("spark.jars", os.environ.get("JDBC_JAR", "/opt/airflow/jdbc_driver/postgresql-42.7.11.jar"))
-        .getOrCreate()
-)
+from session import get_spark, get_jdbc_url
 
-# Read from the mounted data folder (container or local WSL path via env var)
-data_path = os.environ.get("DATA_PATH", "/opt/airflow/data/raw")
+spark = get_spark("OrderItems")
+
+# Read from S3 (bucket/prefix via env var, defaults to the olist raw data location)
+data_path = os.environ.get("DATA_PATH", "s3a://olist-raw-daud/raw")
 df = spark.read.option("header", True).option("inferSchema", True).csv(f"{data_path}/olist_order_items_dataset.csv")
 
 # Transformations
@@ -20,10 +16,10 @@ df_clean = (df
 
 df_deduped = df_clean.drop_duplicates(["order_id", "order_item_id"])
 
-# Database configurations pointing to the internal Docker service network
+# Database configurations - RDS in production, local Docker Postgres by default
 db_user = os.environ.get("OLIST_DB_USER", "olist_user")
 db_password = os.environ.get("OLIST_DB_PASSWORD", "olist_password")
-jdbc_url = "jdbc:postgresql://olist-postgres:5432/olist_db"
+jdbc_url = get_jdbc_url()
 
 # Write out to the warehouse target
 df_deduped.write.jdbc(

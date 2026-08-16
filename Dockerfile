@@ -3,7 +3,7 @@ FROM apache/airflow:3.2.2
 USER root
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends openjdk-17-jdk postgresql-client && \
+    apt-get install -y --no-install-recommends openjdk-17-jdk postgresql-client curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

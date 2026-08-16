@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: "One row per order, cast from the olist_raw.orders source."
+    columns:
+      - name: order_id
+        description: "Primary key. Unique identifier of the order."
+        data_tests:
+          - unique
+          - not_null
+      - name: order_status
+        description: "Order status as recorded in the source system."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - approved
+                  - canceled
+                  - created
+                  - delivered
+                  - invoiced
+                  - processing
+                  - shipped
+                  - unavailable
+      - name: order_delivered_customer_date
+        description: "Timestamp the order reached the customer. Null for any order that hasn't been delivered yet."
+        data_tests:
+          - not_null:
+              config:
+                severity: warn
+
+  - name: stg_order_items
+    description: "One row per order line item, cast from the olist_raw.order_items source."
+    columns:
+      - name: order_id
+        description: "Foreign key to stg_orders.order_id. Not unique on its own — an order can have multiple line items."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+      - name: order_item_id
+        description: "Sequential line-item number within an order. Combined with order_id, forms the primary key."
+        data_tests:
+          - not_null
+      - name: price
+        description: "Item price paid by the customer, excluding freight."
+        data_tests:
+          - accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
+    data_tests:
+      - unique:
+          column_name: "order_id || '-' || order_item_id"

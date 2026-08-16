@@ -16,6 +16,7 @@ with DAG(
     schedule='@daily',
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
 ) as dag:
 
     clean_orders_task = BashOperator(
@@ -28,14 +29,9 @@ with DAG(
         bash_command='python /opt/airflow/spark_jobs/clean_order_items.py'
     )
 
-    # Uses internal Docker networking DNS (olist-postgres) to query row assertions
     verify_counts_task = BashOperator(
         task_id='verify_counts_task',
-        bash_command=(
-            'PGPASSWORD=olist_password psql -h olist-postgres -p 5432 -U olist_user -d olist_db -c '
-            '"SELECT \'orders\' as table_name, COUNT(*) FROM orders UNION ALL '
-            'SELECT \'order_items\', COUNT(*) FROM order_items;"'
-        )
+        bash_command='python /opt/airflow/spark_jobs/validate_pipeline.py'
     )
 
     # Parallel cleaning tasks execution pattern flowing into validation target
