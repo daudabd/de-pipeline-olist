@@ -34,5 +34,15 @@ with DAG(
         bash_command='python /opt/airflow/spark_jobs/validate_pipeline.py'
     )
 
+    dbt_run_task = BashOperator(
+        task_id='dbt_run_task',
+        bash_command='cd /opt/airflow/olist_dbt && dbt run'
+    )
+
+    dbt_test_task = BashOperator(
+        task_id='dbt_test_task',
+        bash_command='cd /opt/airflow/olist_dbt && dbt test'
+    )
+
     # Parallel cleaning tasks execution pattern flowing into validation target
-    [clean_orders_task, clean_order_items_task] >> verify_counts_task
+    [clean_orders_task, clean_order_items_task] >> verify_counts_task >> dbt_run_task >> dbt_test_task

@@ -84,6 +84,8 @@ x-airflow-common:
     AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
     # RDS Postgres endpoint for the PySpark cleaning jobs' JDBC write target
     RDS_ENDPOINT: ${RDS_ENDPOINT}
+    # dbt profile lookup path — profiles.yml lives alongside the dbt project
+    DBT_PROFILES_DIR: '/opt/airflow/olist_dbt'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
@@ -91,6 +93,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/spark_jobs:/opt/airflow/spark_jobs
     - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
+    - ${AIRFLOW_PROJ_DIR:-.}/olist_dbt:/opt/airflow/olist_dbt
     - ~/jdbc_drivers:/opt/airflow/jdbc_driver
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:

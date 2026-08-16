@@ -26,7 +26,7 @@ db_password = os.environ.get("OLIST_DB_PASSWORD", "olist_password")
 jdbc_url = get_jdbc_url()
 
 # Write out to the warehouse target
-df_deduped.write.jdbc(
+df_deduped.write.option("truncate", "true").jdbc(
     url=jdbc_url,
     table="orders",
     mode="overwrite",

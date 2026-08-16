@@ -13,3 +13,4 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 USER airflow
 
 RUN pip install pyspark
+RUN pip install dbt-core dbt-postgres
